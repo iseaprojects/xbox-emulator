@@ -2,7 +2,7 @@ use super::*;
 use tombox_xshader::global_abi::{fault_of, window_cb, Window, TB_GLOBAL_SPACE};
 
 fn g(op: u32, seg: u32, off: i32, addr: u32, data: u32, saddr: u32, vdst: u32) -> [u32; 2] {
-    [0xdc00_0000 | (op << 18) | (seg << 14) | (off as u32 & 0xfff), addr | (data << 8) | (saddr << 16) | (vdst << 24)]
+    [0xdc00_0000 | (op << 18) | (seg << 14) | (off as u32 & 0x1fff), addr | (data << 8) | (saddr << 16) | (vdst << 24)]
 }
 
 const W0: Window = Window { base: 0x10_0000_0000, size: 4096 };
@@ -250,7 +250,7 @@ fn dval(t: u32, k: u32) -> u32 {
     t.wrapping_mul(0x2f5b3) ^ KD[k as usize]
 }
 
-const MODES: [(u32, u32, i32, i32); 5] = [(2, 22, -4, -4), (2, 22, 8, 8), (2, 0x7d, -16, -16), (0, 0x7d, 0, 0), (0, 0x7d, 0x80c, 12)];
+const MODES: [(u32, u32, i32, i32); 5] = [(2, 22, -4, -4), (2, 22, 8, 8), (2, 0x7d, -16, -16), (0, 0x7d, 0, 0), (0, 0x7d, 12, 12)];
 
 fn gprog(mul: u32, add: u32, eff: i32, body: &[u32]) -> Vec<u32> {
     let mut p = Prog::new();

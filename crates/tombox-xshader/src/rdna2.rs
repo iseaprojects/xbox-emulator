@@ -386,7 +386,7 @@ fn decode_operands(enc: Enc, raw: &[u32]) -> (Vec<Opnd>, Vec<Opnd>, InsnAux) {
             let d1 = raw.get(1).copied().unwrap_or(0);
             aux.mask = ((w >> 14) & 3) as u8;
             let flat = aux.mask == 0;
-            aux.imm = if flat { (w & 0x7ff) as i64 } else { (((w & 0xfff) as i32) << 20 >> 20) as i64 };
+            aux.imm = if flat { (w & 0xfff) as i64 } else { (((w & 0x1fff) as i32) << 19 >> 19) as i64 };
             let saddr = (d1 >> 16) & 0x7f;
             (vec![Opnd::Vgpr((d1 >> 24) as u8)],
              vec![Opnd::Vgpr((d1 & 0xff) as u8), Opnd::Vgpr(((d1 >> 8) & 0xff) as u8),

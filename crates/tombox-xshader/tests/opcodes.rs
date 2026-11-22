@@ -621,6 +621,30 @@ fn sopc_eq(a: u32, b: u32) -> u32 {
     0xbf00_0000 | (0x06 << 16) | (b << 8) | a
 }
 
+fn flat_word(op: u32, seg: u32, offset: u32) -> [u32; 2] {
+    [0xdc00_0000 | (op << 18) | (seg << 14) | (offset & 0x1fff), (1 << 24) | (0x7f << 16) | (3 << 8) | 2]
+}
+
+#[test]
+fn flat_offsets_keep_all_thirteen_bits_and_flat_ignores_the_top_one() {
+    for (seg, offset, want) in [
+        (0u32, 0x0fffu32, 4095i64),
+        (0, 0x0810, 2064),
+        (0, 0x1fff, 4095),
+        (2, 0x0800, 2048),
+        (2, 0x1fff, -1),
+        (2, 0x1000, -4096),
+        (1, 0x1abc, -1348),
+    ] {
+        let w = flat_word(0x0c, seg, offset);
+        let isa: Vec<u8> = w.iter().flat_map(|x| x.to_le_bytes()).collect();
+        let ins = disassemble(&isa);
+        assert_eq!(ins.len(), 1);
+        assert_eq!(ins[0].aux.imm, want, "seg {seg} offset {offset:#x}");
+        assert_eq!(ins[0].aux.mask as u32, seg, "seg {seg} offset {offset:#x}");
+    }
+}
+
 #[test]
 fn image_get_lod_reads_both_lods() {
     let root = Some(RootSig { version: 2, flags: 1, params: vec![table(0, 64), table(3, 16)], num_static_samplers: 0, static_samplers: Vec::new() });
